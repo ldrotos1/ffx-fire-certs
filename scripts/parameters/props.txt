@@ -1,0 +1,1 @@
+rootCA=ffx_fire_root_ca
