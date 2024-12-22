@@ -1,6 +1,6 @@
 # ffx-fire-certs
 Contains scripts for creating certificates to be used for mutual TLS
 
-## Requirmenta
+## Requirments
 OpenSSL,<br/>
-Java 17<br>/
+Java 17<br/>
