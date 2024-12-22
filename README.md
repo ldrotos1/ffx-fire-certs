@@ -2,5 +2,5 @@
 Contains scripts for creating certificates to be used for mutual TLS
 
 ## Requirments
-OpenSSL,<br/>
+OpenSSL<br/>
 Java 17<br/>
