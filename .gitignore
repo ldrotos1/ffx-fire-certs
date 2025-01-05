@@ -1,0 +1,8 @@
+# Certificate Files #
+*.crt
+*.csr
+*.key
+*.p12
+*.srl
+*.jks
+

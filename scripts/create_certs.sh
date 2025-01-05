@@ -5,28 +5,52 @@ echo "|-----------------------------------------------------------------------|"
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-echo "Creating root certificate"
+rm -r ${SCRIPT_DIR}/certs/* 
+
+echo "--------- Creating root certificate ----------"
 winpty openssl req -x509 -sha256 -days 3650 -newkey rsa:4096 \
   -keyout "${SCRIPT_DIR}/certs/ffx-fire-root-CA.key" \
   -out "${SCRIPT_DIR}/certs/ffx-fire-root-CA.crt" \
   -subj "//SKIP=skip/CN=fairfaxfire.gov/emailAddress=admin@fairfaxfire.gov/C=US/ST=Virginia/L=Fairfax/O=Fairfax County/OU=Fire and Rescue" \
   -passin pass:'password' \
   -passout pass:'password'
-echo "Root certificate created"
+echo "--------- Root certificate created ----------"
 
-echo "Creating server certicate CSR"
+echo "--------- Creating server certicate CSR ----------"
 winpty openssl req -new -newkey rsa:4096 \
   -keyout "${SCRIPT_DIR}/certs/ffx-fire-server.key" \
   -out "${SCRIPT_DIR}/certs/ffx-fire-server.csr" \
   -subj "//SKIP=skip/CN=localhost/emailAddress=admin@fairfaxfire.gov/C=US/ST=Virginia/L=Fairfax/O=Fairfax County/OU=Fire and Rescue" \
   -passin pass:'password' \
   -passout pass:'password'
-echo "Server certificate created"
+echo "--------- Server certificate created ----------"
 
-echo "Signing server certificate"
+echo "--------- Signing server certificate ----------"
 winpty openssl x509 -req -CA "${SCRIPT_DIR}/certs/ffx-fire-root-CA.crt" -CAkey "${SCRIPT_DIR}/certs/ffx-fire-root-CA.key" \
   -in "${SCRIPT_DIR}/certs/ffx-fire-server.csr" \
   -out "${SCRIPT_DIR}/certs/ffx-fire-server.crt" \
   -passin pass:'password' \
   -days 365 -CAcreateserial -extfile "${SCRIPT_DIR}/localhost.ext"
-echo "Server certificate signed"
+echo "--------- Server certificate signed ----------"
+
+echo "--------- Importing server certifcate into keystore ----------"
+winpty openssl pkcs12 -export -out "${SCRIPT_DIR}/certs/ffx-fire-server.p12" -name "ffx-fire-server" -inkey "${SCRIPT_DIR}/certs/ffx-fire-server.key" -in "${SCRIPT_DIR}/certs/ffx-fire-server.crt" -passin pass:'password' -passout pass:'password'
+keytool -importkeystore -srckeystore "${SCRIPT_DIR}/certs/ffx-fire-server.p12" -srcstoretype PKCS12 -destkeystore "${SCRIPT_DIR}/certs/ffx-fire-server-keystore.jks" -deststoretype JKS -srcstorepass "password" -deststorepass "password"
+echo "--------- Keystore created ----------"
+
+echo "--------- Creating the truststore ----------"
+keytool -import -trustcacerts -noprompt -alias ca -ext san=dns:localhost,ip:127.0.0.1 -file "${SCRIPT_DIR}/certs/ffx-fire-root-CA.crt" -keystore "${SCRIPT_DIR}/certs/ffx-fire-truststore.jks" -srcstorepass "password" -deststorepass "password"
+echo "--------- Truststore created ----------"
+
+echo "--------- Creating client certificate ----------"
+winpty openssl req -new -newkey rsa:4096 -nodes \
+  -subj "//SKIP=skip/CN=johndoe1/emailAddress=johndoe1@fairfaxfire.gov/C=US/ST=Virginia/L=Fairfax/O=Fairfax County/OU=Fire and Rescue" \
+  -keyout "${SCRIPT_DIR}/certs/ffx-fire-client.key" \
+  -out "${SCRIPT_DIR}/certs/ffx-fire-client.csr" \
+  -passin pass:'password' \
+  -passout pass:'password'
+winpty openssl x509 -req -CA "${SCRIPT_DIR}/certs/ffx-fire-root-CA.crt" -CAkey "${SCRIPT_DIR}/certs/ffx-fire-root-CA.key" -in "${SCRIPT_DIR}/certs/ffx-fire-client.csr" -out "${SCRIPT_DIR}/certs/ffx-fire-client.crt" -days 365 -CAcreateserial -passin pass:'password'
+winpty openssl pkcs12 -export -out "${SCRIPT_DIR}/certs/ffx-fire-client.p12" -name "ffx-fire-client" -inkey "${SCRIPT_DIR}/certs/ffx-fire-client.key" -in "${SCRIPT_DIR}/certs/ffx-fire-client.crt" -passin pass:'password' -passout pass:'password'
+echo "--------- Client certificate created ----------"
+
+echo "--------- Script completed ----------"
