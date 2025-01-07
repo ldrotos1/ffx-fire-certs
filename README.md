@@ -1,11 +1,16 @@
 # ffx-fire-certs
-Contains scripts for creating certificates to be used for mutual TLS during local development
+Contains scripts for creating certificates to be used for mutual TLS during local development on the Fairfax Country Fire and Rescue Operations Dashboard
 
 ## Requirments
 Windows OS<br/>
 OpenSSL<br/>
 Java 17<br/>
 Java Keytool command on path<br/>
+
+## Scripts
+
+###  create_certs.sh
+This script will create self signed certificates that can be used to support mutual TLS when doing local development on the Fairfax Country Fire and Rescue Operations Dashboard application.
 
 ## Key Generated Artifacts
 
