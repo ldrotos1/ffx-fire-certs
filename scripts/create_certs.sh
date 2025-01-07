@@ -12,7 +12,7 @@ CA_KEY="${CERT_DIR}/${FILENMAE_PREFIX}-root-CA.key"
 CA_CRT="${CERT_DIR}/${FILENMAE_PREFIX}-root-CA.crt"
 CA_SUBJ="//SKIP=skip/CN=fairfaxfire.gov/emailAddress=admin@fairfaxfire.gov/C=US/ST=Virginia/L=Fairfax/O=Fairfax County/OU=Fire and Rescue"
 
-SERV_NAME="${FILENMAE_PREFIX}-server"
+SERV_NAME="localhost"
 SERV_KEY="${CERT_DIR}/${FILENMAE_PREFIX}-server.key"
 SERV_CSR="${CERT_DIR}/${FILENMAE_PREFIX}-server.csr"
 SERV_CRT="${CERT_DIR}/${FILENMAE_PREFIX}-server.crt"
