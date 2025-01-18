@@ -1,1 +1,0 @@
-All generated certifcates and associated artifates will be placed within this directory 

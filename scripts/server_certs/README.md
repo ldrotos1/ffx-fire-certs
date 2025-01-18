@@ -1,0 +1,1 @@
+All generated server certifcates and associated artifates will be placed within this directory 
