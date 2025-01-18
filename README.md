@@ -6,6 +6,7 @@ Windows OS<br/>
 OpenSSL<br/>
 Java 17<br/>
 Java Keytool command on path<br/>
+jq<br/>
 
 ## Scripts
 
