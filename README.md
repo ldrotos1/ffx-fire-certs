@@ -6,6 +6,7 @@ Windows OS<br/>
 OpenSSL<br/>
 Java 17<br/>
 Java Keytool command on path<br/>
+jq<br/>
 
 ## Scripts
 
@@ -24,4 +25,4 @@ Creates a truststore file, *ffx-fire-server-truststore.jks*, that contains the r
 Creates a root CA file, *ffx-fire-root-CA.crt*, that can be installed in a web browser as a trusted certificate. This is used to by the browser to verify the certificate that is presented by the backend REST server.
 
 ### Client-side Certificate
-Creates a client-side certificate, *ffx-fire-client.p12*, that can be installed in a web browser as a client certificate. This certificate is presented to the backend REST server to authenticate the client.
+Creates multiple client-side certificates, for example *John-Doe-client.p12*, that can be installed in a web browser as a client certificates. These certificate can be presented to the backend REST server to authenticate the client.
