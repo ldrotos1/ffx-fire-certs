@@ -22,13 +22,6 @@ SERV_SUBJ="//SKIP=skip/CN=localhost/emailAddress=admin@fairfaxfire.gov/C=US/ST=V
 
 TS_JKS="${CERT_DIR}/${FILENMAE_PREFIX}-truststore.jks"
 
-CLIENT_NAME="${FILENMAE_PREFIX}-client"
-CLIENT_KEY="${CERT_DIR}/${FILENMAE_PREFIX}-client.key"
-CLIENT_CSR="${CERT_DIR}/${FILENMAE_PREFIX}-client.csr"
-CLIENT_CRT="${CERT_DIR}/${FILENMAE_PREFIX}-client.crt"
-CLIENT_P12="${CERT_DIR}/${FILENMAE_PREFIX}-client.p12"
-CLIENT_SUBJ="//SKIP=skip/CN=johndoe1/emailAddress=johndoe1@fairfaxfire.gov/C=US/ST=Virginia/L=Fairfax/O=Fairfax County/OU=Fire and Rescue"
-
 echo "--------- Removing any previously generated cert files ----------"
 find $CERT_DIR -type f ! \( -name '*.md' \) -delete
 
@@ -48,9 +41,30 @@ keytool -importkeystore -srckeystore $SERV_P12 -srcstoretype PKCS12 -destkeystor
 echo "--------- Creating the truststore ----------"
 keytool -import -trustcacerts -noprompt -alias ca -ext san=dns:localhost,ip:127.0.0.1 -file $CA_CRT -keystore $TS_JKS -srcstorepass $PASSWORD -deststorepass $PASSWORD
 
-echo "--------- Creating client certificate ----------"
-winpty openssl req -new -newkey rsa:4096 -nodes -keyout $CLIENT_KEY -out $CLIENT_CSR -subj "${CLIENT_SUBJ}" -passin "pass:${PASSWORD}" -passout "pass:${PASSWORD}"
-winpty openssl x509 -req -CA $CA_CRT -CAkey $CA_KEY -in $CLIENT_CSR -out $CLIENT_CRT -days 365 -CAcreateserial -passin "pass:${PASSWORD}"
-winpty openssl pkcs12 -export -out $CLIENT_P12 -name $CLIENT_NAME -inkey $CLIENT_KEY -in $CLIENT_CRT -passin "pass:${PASSWORD}" -passout "pass:${PASSWORD}"
+echo "--------- Creating client certificates ----------"
+jsonlist=$(jq -r '.users' "${SCRIPT_DIR}/users.json")
+for row in $(echo "${jsonlist}" | jq -r '.[] | @base64'); do
+  _jq()
+  {
+    echo ${row} | base64 --decode -i | jq -r ${1}
+  }
+
+  CLIENT_NAME="$(_jq '.name')"
+  CLIENT_EMAIL="$(_jq '.email')"
+  CLIENT_FILE_NAME="${CLIENT_NAME/" "/"-"}"
+
+  CLIENT_CERT_NAME="${CLIENT_FILE_NAME}-client"
+  CLIENT_KEY="${CERT_DIR}/${CLIENT_FILE_NAME}-client.key"
+  CLIENT_CSR="${CERT_DIR}/${CLIENT_FILE_NAME}-client.csr"
+  CLIENT_CRT="${CERT_DIR}/${CLIENT_FILE_NAME}-client.crt"
+  CLIENT_P12="${CERT_DIR}/${CLIENT_FILE_NAME}-client.p12"
+  CLIENT_SUBJ="//SKIP=skip/CN=${CLIENT_NAME}/emailAddress=${CLIENT_EMAIL}/C=US/ST=Virginia/L=Fairfax/O=Fairfax County/OU=Fire and Rescue"
+  
+  winpty openssl req -new -newkey rsa:4096 -nodes -keyout $CLIENT_KEY -out $CLIENT_CSR -subj "${CLIENT_SUBJ}" -passin "pass:${PASSWORD}" -passout "pass:${PASSWORD}"
+  winpty openssl x509 -req -CA $CA_CRT -CAkey $CA_KEY -in $CLIENT_CSR -out $CLIENT_CRT -days 365 -CAcreateserial -passin "pass:${PASSWORD}"
+  winpty openssl pkcs12 -export -out $CLIENT_P12 -name $CLIENT_CERT_NAME -inkey $CLIENT_KEY -in $CLIENT_CRT -passin "pass:${PASSWORD}" -passout "pass:${PASSWORD}"
+  echo "--- Created client certification for ${CLIENT_NAME}" 
+
+done
 
 echo "--------- Script completed ----------"
